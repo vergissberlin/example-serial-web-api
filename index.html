@@ -9,6 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ffffff%22 width=%2224%22 height=%2224%22><path d=%22M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z%22/%3E</svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -60,8 +63,32 @@
             <textarea id="log" readonly placeholder="Log output"
                 class="w-full p-3 border rounded text-slate-500"></textarea>
         </div>
+
+        <section>
+            <h2 class="my-3 text-2xl">Arduino code</h2>
+            <p>
+                The Arduino could be programmed with the following code:
+            <details>
+                <pre><code class="language-cpp">void setup() {
+    Serial.begin(115200); // Start serial communication with 115200 baud
+}
+
+void loop() {
+    if (Serial.available()) { // Check whether data is available
+        String data = Serial.readStringUntil('\n'); // Read data up to the line break
+        Serial.println("Echo: " + data); // Send back the received data
+    }
+}
+</code></pre>
+            </details>
+        </section>
     </main>
     <script>
+        hljs.highlightAll()
+        hljs.configure({
+            languages: ['cpp']
+        })
+        hljs.initHighlightingOnLoad()
         document.getElementById('connect').addEventListener('click', async () => {
             // Prüfen, ob der Browser Web Serial unterstützt
             if ('serial' in navigator) {
