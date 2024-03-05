@@ -18,16 +18,16 @@ Firstly, you need to programme your ESP32 so that it can send and receive data v
 
 ```cpp
     void setup() {
-        Serial.begin(115200); // Beginne serielle Kommunikation mit 115200 Baud
+        Serial.begin(115200); // Start serial communication with 115200 baud
     }
 
     void loop() {
-    if (Serial.available()) { // Prüfe, ob Daten verfügbar sind
-        String data = Serial.readStringUntil('\n'); // Lese Daten bis zum Zeilenumbruch
-        Serial.println("Echo: " + data); // Sende die empfangenen Daten zurück
+    if (Serial.available()) { // Check whether data is available
+        String data = Serial.readStringUntil('\n'); // Read data up to the line break
+        Serial.println("Echo: " + data); // Send back the received data
         }
     }
-    ```
+```
 
 4. upload the sketch to your ESP32.
 
