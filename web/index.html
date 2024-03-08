@@ -58,17 +58,35 @@
                 The serial device must be set to 115200 baud.
                 You can change the baud rate in the code.
             </p>
-            <div class="flex flex-col p-6 my-3 border border-dashed bg-slate-100 border-slate-300">
-                <h3 class="my-2 text-lg text-slate-600">Connect send and receive data to and from the serial device</h2>
-                    <input id="send" type="text" placeholder="Send data to the serial device"
-                        class="p-3 mb-1 border rounded text-slate-500 ">
-                    <button id="send-btn"
-                        class="p-3 mb-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Send</button>
+            <div id="serial-communication-box"
+                class="p-6 my-3 border border-dashed rounded bg-slate-100 border-slate-300">
+                <section class="mb-4 border-b-1 border-slate-400">
+                    <h4 class="my-2 text-lg font-semibold text-slate-500">1. Flash your Arduino capable device</h4>
+                </section>
+                <section class="mb-4 border-b-1 border-slate-400">
+                    <h4 class="my-2 text-lg font-semibold text-slate-500">2. Connect to the serial device</h4>
+                    <div class="flex items-center justify-start space-x-2">
+                        <button id="connection"
+                            class="w-48 p-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Connect</button>
+                        <div id="connection-indicator"
+                            class="w-6 h-6 border rounded-full bg-slate-300 border-slate-400">
+                        </div>
+                        <div id="connection-log"></div>
+                    </div>
+                </section>
 
-                    <label for="send-log" class="text-align-left">Log:</label>
-                    <textarea id="send-log" readonly placeholder="Log output"
+                <section>
+                    <h4 class="my-2 text-lg font-semibold text-slate-500">
+                        3. Send and receive data to the connected serial device
+                    </h4>
+                    <button id="send-button" disabled
+                        class="w-48 p-3 mb-3 bg-blue-200 border rounded disabled hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Send</button>
+                    <input id="send" type="text" value="Example content" placeholder="Send data to the serial device"
+                        class="p-3 mb-1 border rounded text-slate-500 w-96">
+                    <label for="send-log" class="block text-align-left">Log:</label>
+                    <textarea id="send-log" rows="5" readonly placeholder="Log output"
                         class="w-full p-3 border rounded text-slate-500"></textarea>
-
+                </section>
             </div>
         </section>
         <section>
@@ -97,43 +115,101 @@ void loop() {
         })
         hljs.initHighlightingOnLoad()
 
-        // Send data to the serial device
-        document.getElementById('send-btn').addEventListener('click', async () => {
+
+        var isConnected = false
+        var port = null
+        var serialCommunicationBox = document.getElementById('serial-communication-box')
+        var connectionButton = document.getElementById('connection')
+        var connectionIndicator = document.getElementById('connection-indicator')
+        var connectionLog = document.getElementById('connection-log')
+
+        var sendInput = document.getElementById('send')
+        var sendButton = document.getElementById('send-button')
+        var sendLog = document.getElementById('send-log')
+
+        var classSuccessBg = 'bg-green-100'
+        var classSuccessBgEmphasis = 'bg-green-400'
+        var classSuccessText = 'text-green-500'
+        var classErrorBg = 'bg-red-100'
+        var classErrorText = 'text-red-500'
+        var classDefaultBg = 'bg-slate-100'
+        var classDefaultText = 'text-slate-500'
+
+        // Connect to serial device and save status to the indicator
+        document.getElementById('connection').addEventListener('click', async () => {
+
+
             if ('serial' in navigator) {
                 try {
-                    const port = await navigator.serial.requestPort()
-                    await port.open({baudRate: 115200})
+                    if (!isConnected) {
+                        port = await navigator.serial.requestPort()
+                        await port.open({baudRate: 115200})
+                        isConnected = true
+                        sendButton.disabled = false
+                        serialCommunicationBox.classList.add('bg-green-100')
+                        connectionButton.classList.add(classDefaultBg)
+                        connectionButton.textContent = 'Disconnect'
+                        connectionIndicator.classList.add(classSuccessBgEmphasis)
+                        connectionLog.textContent = 'Connected to ' + port.getInfo().usbProductId
+                    } else {
+                        await port.close()
+                        isConnected = false
+                        port = null
+                        sendButton.disabled = true
+                        connectionButton.classList.remove(classDefaultBg)
+                        connectionButton.textContent = 'Connect'
+                        connectionIndicator.classList.remove(classSuccessBgEmphasis)
+                        connectionLog.textContent = 'Disconnected'
+                    }
+                } catch (e) {
+                    console.error(e)
+                    connectionIndicator.style.backgroundColor = 'red'
+                    connectionLog.textContent = e.message
+                }
+            } else {
+                console.log('Your browser does not support the Web Serial API.')
+                connectionIndicator.style.backgroundColor = 'red'
+                connectionLog.textContent = 'Your browser does not support the Web Serial API.'
+            }
+        })
 
+        // Send data to the serial device
+        document.getElementById('send-button').addEventListener('click', async () => {
+            if (isConnected) {
+                try {
                     const writer = port.writable.getWriter()
                     const textEncoder = new TextEncoderStream()
                     const writableStreamClosed = textEncoder.readable.pipeTo(port.writable)
-
                     const reader = port.readable.getReader()
+                    const data = sendInput.value
 
-                    const data = document.getElementById('send').value
-                    writer.write(new TextEncoder().encode(data + '\n'))
-
-                    document.getElementById('send-log').textContent += 'Sent: ' + data + '\n'
+                    await writer.write(new TextEncoder().encode(data + '\n'))
+                    sendLog.textContent += 'Sent: ' + data + '\n'
+                    sendButton.disabled = true
+                    sendButton.classList.add(['disabled', classDefaultBg])
+                    sendButton.textContent = 'Sending …'
 
                     while (true) {
                         const {value, done} = await reader.read()
 
                         if (done) {
+                            alert('close stream')
+                            sendButton.disabled = false
+                            sendButton.textContent = 'Send'
+                            sendButton.classList.remove(['disabled', classDefaultBg])
+                            sendInput.value = ''
                             reader.releaseLock()
                             break
                         }
-
-                        document.getElementById('send-log').textContent += new TextDecoder().decode(value)
+                        sendLog.textContent += new TextDecoder().decode(value)
                     }
                 } catch (e) {
                     console.error(e)
-                    document.getElementById('send-log').textContent += e.message + '\n'
+                    sendLog.textContent += e.message + '\n'
                 }
-            } else {
-                console.log('Your browser does not support the Web Serial API.')
             }
-            document.getElementById('send').value = ''
-            document.getElementById('send-log').textContent += '\n'
+            sendInput.value = ''
+            sendLog.textContent += '\n'
         });
     </script>
 
