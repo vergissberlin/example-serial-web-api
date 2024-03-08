@@ -62,6 +62,22 @@
                 class="p-6 my-3 border border-dashed rounded bg-slate-100 dark:bg-slate-700 dark:text-slate-500 border-slate-300">
                 <section class="mb-4 border-b-1 border-slate-400">
                     <h4 class="my-2 text-lg font-semibold text-slate-500">1. Flash your Arduino capable device</h4>
+                    <h5 class="my-3 text-2xl">Arduino code</h5>
+                    <p>
+                        The Arduino could be programmed with the following code:
+                    <details>
+                        <pre><code class="language-cpp">void setup() {
+    Serial.begin(115200); // Start serial communication with 115200 baud
+}
+
+void loop() {
+    if (Serial.available()) { // Check whether data is available
+        String data = Serial.readStringUntil('\n'); // Read data up to the line break
+        Serial.println("Echo: " + data); // Send back the received data
+    }
+}
+</code></pre>
+                    </details>
                 </section>
                 <section class="mb-4 border-b-1 border-slate-400">
                     <h4 class="my-2 text-lg font-semibold text-slate-500">2. Connect to the serial device</h4>
@@ -89,24 +105,6 @@
                 </section>
             </div>
         </section>
-        <section>
-            <h2 class="my-3 text-2xl">Arduino code</h2>
-            <p>
-                The Arduino could be programmed with the following code:
-            <details>
-                <pre><code class="language-cpp">void setup() {
-    Serial.begin(115200); // Start serial communication with 115200 baud
-}
-
-void loop() {
-    if (Serial.available()) { // Check whether data is available
-        String data = Serial.readStringUntil('\n'); // Read data up to the line break
-        Serial.println("Echo: " + data); // Send back the received data
-    }
-}
-</code></pre>
-            </details>
-        </section>
     </main>
     <script>
         hljs.highlightAll()
@@ -114,7 +112,6 @@ void loop() {
             languages: ['cpp']
         })
         hljs.initHighlightingOnLoad()
-
 
         var isConnected = false
         var port = null
