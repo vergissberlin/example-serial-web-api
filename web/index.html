@@ -107,7 +107,6 @@ void loop() {
         </section>
     </main>
     <script>
-        hljs.highlightAll()
         hljs.configure({
             languages: ['cpp']
         })
@@ -134,7 +133,6 @@ void loop() {
 
         // Connect to serial device and save status to the indicator
         connectionButton.addEventListener('click', async () => {
-
             if ('serial' in navigator) {
                 try {
                     if (!isConnected) {
