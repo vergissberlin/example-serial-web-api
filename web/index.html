@@ -111,7 +111,7 @@ void loop() {
         hljs.configure({
             languages: ['cpp']
         })
-        hljs.initHighlightingOnLoad()
+        hljs.highlightAll()
 
         var isConnected = false
         var port = null
@@ -140,7 +140,7 @@ void loop() {
                 try {
                     if (!isConnected) {
                         port = await navigator.serial.requestPort()
-                        await port.open({baudRate: 115200})
+                        await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
                         isConnected = true
                         sendButton.disabled = false
                         serialCommunicationBox.classList.add('bg-green-100')
@@ -174,10 +174,10 @@ void loop() {
         document.getElementById('send-button').addEventListener('click', async () => {
             if (isConnected) {
                 try {
+                    const reader = port.readable.getReader()
                     const writer = port.writable.getWriter()
                     const textEncoder = new TextEncoderStream()
                     const writableStreamClosed = textEncoder.readable.pipeTo(port.writable)
-                    const reader = port.readable.getReader()
                     const data = sendInput.value
 
                     await writer.write(new TextEncoder().encode(data + '\n'))
@@ -188,14 +188,13 @@ void loop() {
 
                     while (true) {
                         const {value, done} = await reader.read()
-
                         if (done) {
-                            alert('close stream')
+                            sendLog.textContent += 'Received: ' + new TextDecoder().decode(value) + '\n'
                             sendButton.disabled = false
                             sendButton.textContent = 'Send'
                             sendButton.classList.remove(['disabled', classDefaultBg])
-                            sendInput.value = ''
-                            reader.releaseLock()
+                            writer.close()
+                            reader.cancel()
                             break
                         }
                         sendLog.textContent += new TextDecoder().decode(value)
