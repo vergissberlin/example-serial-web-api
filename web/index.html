@@ -135,7 +135,6 @@ void loop() {
         // Connect to serial device and save status to the indicator
         document.getElementById('connection').addEventListener('click', async () => {
 
-
             if ('serial' in navigator) {
                 try {
                     if (!isConnected) {
@@ -204,8 +203,6 @@ void loop() {
                     sendLog.textContent += e.message + '\n'
                 }
             }
-            sendInput.value = ''
-            sendLog.textContent += '\n'
         });
     </script>
 
