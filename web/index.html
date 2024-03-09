@@ -113,27 +113,27 @@ void loop() {
         })
         hljs.highlightAll()
 
-        var isConnected = false
-        var port = null
-        var serialCommunicationBox = document.getElementById('serial-communication-box')
-        var connectionButton = document.getElementById('connection')
-        var connectionIndicator = document.getElementById('connection-indicator')
-        var connectionLog = document.getElementById('connection-log')
+        var isConnected = false,
+            port = null,
+            serialCommunicationBox = document.getElementById('serial-communication-box'),
+            connectionButton = document.getElementById('connection'),
+            connectionIndicator = document.getElementById('connection-indicator'),
+            connectionLog = document.getElementById('connection-log'),
 
-        var sendInput = document.getElementById('send')
-        var sendButton = document.getElementById('send-button')
-        var sendLog = document.getElementById('send-log')
+            sendInput = document.getElementById('send'),
+            sendButton = document.getElementById('send-button'),
+            sendLog = document.getElementById('send-log'),
 
-        var classSuccessBg = 'bg-green-100'
-        var classSuccessBgEmphasis = 'bg-green-400'
-        var classSuccessText = 'text-green-500'
-        var classErrorBg = 'bg-red-100'
-        var classErrorText = 'text-red-500'
-        var classDefaultBg = 'bg-slate-100'
-        var classDefaultText = 'text-slate-500'
+            classSuccessBg = 'bg-green-100',
+            classSuccessBgEmphasis = 'bg-green-400',
+            classSuccessText = 'text-green-500',
+            classErrorBg = 'bg-red-100',
+            classErrorText = 'text-red-500,',
+            classDefaultBg = 'bg-slate-100',
+            classDefaultText = 'text-slate-500'
 
         // Connect to serial device and save status to the indicator
-        document.getElementById('connection').addEventListener('click', async () => {
+        connectionButton.addEventListener('click', async () => {
 
             if ('serial' in navigator) {
                 try {
@@ -170,14 +170,15 @@ void loop() {
         })
 
         // Send data to the serial device
-        document.getElementById('send-button').addEventListener('click', async () => {
+        sendButton.addEventListener('click', async () => {
             if (isConnected) {
                 try {
-                    const reader = port.readable.getReader()
-                    const writer = port.writable.getWriter()
-                    const textEncoder = new TextEncoderStream()
-                    const writableStreamClosed = textEncoder.readable.pipeTo(port.writable)
-                    const data = sendInput.value
+                    const
+                        reader = port.readable.getReader(),
+                        writer = port.writable.getWriter(),
+                        textEncoder = new TextEncoderStream(),
+                        writableStreamClosed = textEncoder.readable.pipeTo(port.writable),
+                        data = sendInput.value
 
                     await writer.write(new TextEncoder().encode(data + '\n'))
                     sendLog.textContent += 'Sent: ' + data + '\n'
