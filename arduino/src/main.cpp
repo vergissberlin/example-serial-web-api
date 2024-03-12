@@ -11,7 +11,5 @@ void loop()
     {                                               // Check whether data is available
         String data = Serial.readStringUntil('\n'); // Read data up to the line break
         Serial.println("Echo: " + data);            // Send back the received data
-        // Serial.write(0x04);
-        // Serial.end();
     }
 }
