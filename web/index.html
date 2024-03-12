@@ -165,7 +165,6 @@ void loop() {
             classDefaultText = 'text-slate-500'
 
 
-
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         // Function to set status indicator an write log for given id 
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -173,7 +172,10 @@ void loop() {
             let indicator = document.getElementById(id)
             let ledElement = indicator.children[0]
             let logElement = indicator.children[2]
-            ledElement.classList.remove([classSuccessBg, classErrorBg])
+
+            ledElement.classList.remove(classSuccessBg)
+            ledElement.classList.remove(classDefaultBg)
+            ledElement.classList.remove(classErrorBg)
 
             switch (status) {
                 case 'connected':
@@ -181,7 +183,7 @@ void loop() {
                     logElement.textContent = log || 'Connected'
                     break
                 case 'disconnected':
-                    ledElement.classList.add(classErrorBg)
+                    ledElement.classList.add(classDefaultBg)
                     logElement.textContent = log || 'Disconnected'
                     break
                 case 'error':
@@ -194,7 +196,6 @@ void loop() {
                     break
             }
         }
-
 
 
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -252,58 +253,50 @@ void loop() {
             if ('serial' in navigator) {
                 try {
                     // Check if connected
-                    if (!isConnected) {
-                        port = await navigator.serial.requestPort().then((port) => {
-                            setStatusIndicator(
-                                'connection-indicator',
-                                'connected',
-                                `Connected (Product ID: ${port.getInfo().usbProductId}, Vendor ID: ${port.getInfo().usbVendorId})`)
+                    if (isConnected === false) {
+                        try {
+                            port = await navigator.serial.requestPort()
+                            await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
+                            setStatusIndicator('connection-indicator', 'connected', 'Connected')
+                            setStatusIndicator('port-indicator', 'connected', 'Port opened')
+                            setStatusIndicator('readable-indicator', 'connected', 'Readable')
+                            setStatusIndicator('writeable-indicator', 'connected', 'Writeable')
+                            sendButton.disabled = false
+                            connectionButton.textContent = 'Disconnect'
                             isConnected = true
-
-                            port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'}).then(() => {
-                                setStatusIndicator('port-indicator', 'connected', 'Port opened.')
-
-                                // Check if port is readable
-                                if (port.readable) {
-                                    setStatusIndicator('readable-indicator', 'connected', 'Readable')
-                                } else {
-                                    setStatusIndicator('readable-indicator', 'error', 'Not readable')
-                                }
-
-                                // Check if port is writeable
-                                if (port.writable) {
-                                    setStatusIndicator('writeable-indicator', 'connected', 'Writeable')
-                                    sendButton.disabled = false
-                                    connectionButton.textContent = 'Disconnect'
-                                } else {
-                                    setStatusIndicator('writeable-indicator', 'error', 'Not writeable')
-                                }
-                            }).catch((e) => {
-                                setStatusIndicator('port-indicator', 'error', e.message)
-                            })
-                        }).catch((e) => {
+                        } catch (e) {
+                            console.error(e)
                             setStatusIndicator('connection-indicator', 'error', e.message)
-                        })
-
+                        }
                         // await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
                         // serialCommunicationBox.classList.add('bg-green-100')
                         // setStatusIndicator('connection-indicator', 'connected', 'Connected')
-                    } else {
-                        await port.close()
-                        port = null
-                        sendButton.disabled = true
-                        connectionButton.textContent = 'Connect'
-                        setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected')
-                        setStatusIndicator('port-indicator', 'disconnected', 'Disconnected')
-                        setStatusIndicator('readable-indicator', 'disconnected', 'Disconnected')
-                        setStatusIndicator('writeable-indicator', 'disconnected', 'Disconnected')
-                        // setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected')
+                    }
+                    else {
+                        // Disconnect from the serial device
+                        try {
+                            await port.close()
+                            setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected')
+                            setStatusIndicator('port-indicator', 'disconnected', 'Port closed')
+                            setStatusIndicator('readable-indicator', 'disconnected', 'Not readable')
+                            setStatusIndicator('writeable-indicator', 'disconnected', 'Not writeable')
+                            setStatusIndicator('written-indicator', 'disconnected', '…')
+                            sendButton.disabled = true
+                            connectionButton.textContent = 'Connect'
+                            isConnected = false
+                        } catch (e) {
+                            console.error(e)
+                            alert(5)
+                            setStatusIndicator('connection-indicator', 'error', e.message)
+                        }
                     }
                 } catch (e) {
+                    alert(6)
                     console.error(e)
                     setStatusIndicator('connection-indicator', 'error', e.message)
                 }
             } else {
+                alert(7)
                 console.log('Your browser does not support the Web Serial API.')
                 setStatusIndicator('connection-indicator', 'error', 'Your browser does not support the Web Serial API.')
             }
