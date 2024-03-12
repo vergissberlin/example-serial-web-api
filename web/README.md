@@ -48,6 +48,12 @@ Create a web page that uses the Web Serial API to communicate with the ESP32.
 3. Open the serial port in the browser
 4. Enjoy!
 
+## Protocol
+
+The protocol is inspired by https://www.improv-wifi.com/serial/.
+
+
+
 ## License
 
 [MIT](LICENSE)
