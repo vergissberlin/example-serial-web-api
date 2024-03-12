@@ -249,8 +249,6 @@ void loop() {
         async function serialDisconnect() {
             if (port) {
                 try {
-                    await port.close()
-                    port = null
                     setStatusIndicator('connection-indicator', 'info', 'Disconnected')
                     setStatusIndicator('port-indicator', null, 'Port closed')
                     setStatusIndicator('readable-indicator', null, 'Not readable')
@@ -261,6 +259,10 @@ void loop() {
                     isConnected = false
                 } catch (e) {
                     setStatusIndicator('connection-indicator', 'error', e.message)
+                    setStatusIndicator('port-indicator', null, '…')
+                    setStatusIndicator('readable-indicator', null, '…')
+                    setStatusIndicator('writeable-indicator', null, '…')
+                    setStatusIndicator('written-indicator', null, '…')
                     console.error(e)
                 }
             }
