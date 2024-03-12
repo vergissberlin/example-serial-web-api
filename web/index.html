@@ -131,12 +131,18 @@ void loop() {
                     <h4 class="my-2 text-lg font-semibold text-slate-500">
                         3. Send and receive data to the connected serial device
                     </h4>
+
                     <button id="send-button" disabled
                         class="w-48 p-3 mb-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Send</button>
                     <input id="send" type="text" value="Example content" placeholder="Send data to the serial device"
                         class="p-3 mb-1 border rounded text-slate-500 w-96  dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500">
+
                     <label for="send-log" class="block text-align-left">Log:</label>
                     <textarea id="send-log" rows="5" readonly placeholder="Log output"
+                        class="w-full p-3 border rounded text-slate-500 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500"></textarea>
+
+                    <label for="event-log" class="block text-align-left">Event-Log:</label>
+                    <textarea id="event-log" rows="5" readonly placeholder="Log output"
                         class="w-full p-3 border rounded text-slate-500 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500"></textarea>
                 </section>
             </div>
@@ -157,8 +163,12 @@ void loop() {
             sendButton = document.getElementById('send-button'),
             sendLog = document.getElementById('send-log'),
 
+            eventLog = document.getElementById('event-log'),
+
             classSuccessBg = 'bg-green-400',
             classSuccessText = 'text-green-500',
+            classInfoBg = 'bg-sky-400',
+            classInfoText = 'text-sky-500',
             classErrorBg = 'bg-red-400',
             classErrorText = 'text-red-500,',
             classDefaultBg = 'bg-slate-100',
@@ -168,23 +178,30 @@ void loop() {
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         // Function to set status indicator an write log for given id 
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        let setStatusIndicator = (id, status, log) => {
+        let setStatusIndicator = (id, status, log, reset = true) => {
             let indicator = document.getElementById(id)
             let ledElement = indicator.children[0]
             let logElement = indicator.children[2]
 
-            ledElement.classList.remove(classSuccessBg)
-            ledElement.classList.remove(classDefaultBg)
-            ledElement.classList.remove(classErrorBg)
+            if (reset) {
+                ledElement.classList.remove(classSuccessBg)
+                ledElement.classList.remove(classInfoBg)
+                ledElement.classList.remove(classErrorBg)
+                ledElement.classList.add(classDefaultBg)
+            }
 
             switch (status) {
-                case 'connected':
+                case 'success':
                     ledElement.classList.add(classSuccessBg)
-                    logElement.textContent = log || 'Connected'
+                    logElement.textContent = log || 'Success'
                     break
-                case 'disconnected':
+                case 'info':
+                    ledElement.classList.add(classInfoBg)
+                    logElement.textContent = log || 'Warning'
+                    break
+                case 'warning':
                     ledElement.classList.add(classDefaultBg)
-                    logElement.textContent = log || 'Disconnected'
+                    logElement.textContent = log || 'Warning'
                     break
                 case 'error':
                     ledElement.classList.add(classErrorBg)
@@ -198,53 +215,112 @@ void loop() {
         }
 
 
-        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        // Event listener for serial connection
-        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        /*
-        navigator.serial.addEventListener("connect", (e) => {
-            setStatusIndicator('connection-indicator', 'connected', 'Connected to ' + e.target.getInfo().usbProductId)
-        })
-
-        navigator.serial.addEventListener("disconnect", (e) => {
-            setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected from ' + e.target.getInfo().usbProductId)
-        })
-
-        navigator.serial.getPorts().then((ports) => {
-            if (ports.length > 0) {
-                setStatusIndicator('port-indicator', 'connected', 'Connected to ' + ports[0].getInfo().usbProductId)
-            } else {
-                setStatusIndicator('port-indicator', 'disconnected', 'No device connected')
+        /**
+         * Connect to serial device
+         *
+         * @throws {DOMException} - Error message
+         * @return void
+         **/
+        async function serialConnect() {
+            try {
+                port = await navigator.serial.requestPort()
+                await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
+                setStatusIndicator('connection-indicator', 'success', 'Connected')
+                setStatusIndicator('port-indicator', 'success', 'Port opened')
+                setStatusIndicator('readable-indicator', 'success', 'Readable')
+                setStatusIndicator('writeable-indicator', 'success', 'Writeable')
+                sendButton.disabled = false
+                connectionButton.textContent = 'Disconnect'
+                isConnected = true
+            } catch (e) {
+                setStatusIndicator('connection-indicator', 'error', e.message)
+                console.error(e)
             }
-        })
-        */
-
-
-        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        // Get the reader and read the data from the serial device
-        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        /*
-        async function getReader() {
-            const usbVendorId = 0xabcd
-            port = await navigator.serial.requestPort({filters: [{usbVendorId}]})
-            await port.open({baudRate: 9600})
-            connectButton.innerText = 'Disconnect'
-            const appendStream = new WritableStream({
-                write(chunk) {
-                    lineBuffer += chunk
-                    let lines = lineBuffer.split('\n')
-                    if (lines.length > 1) {
-                        lineBuffer = lines.pop()
-                        latestValue = parseInt(lines.pop().trim())
-                    }
-                }
-            })
-
-            port.readable
-                .pipeThrough(new TextDecoderStream())
-                .pipeTo(appendStream)
         }
-        */
+
+
+        /**
+         * Disconnect from serial device
+         *
+         * @throws {DOMException} - Error message
+         * @return void
+         **/
+        async function serialDisconnect() {
+            if (port) {
+                try {
+                    await port.close()
+                    port = null
+                    setStatusIndicator('connection-indicator', 'info', 'Disconnected')
+                    setStatusIndicator('port-indicator', null, 'Port closed')
+                    setStatusIndicator('readable-indicator', null, 'Not readable')
+                    setStatusIndicator('writeable-indicator', null, 'Not writeable')
+                    setStatusIndicator('written-indicator', null, '…')
+                    sendButton.disabled = true
+                    connectionButton.textContent = 'Connect'
+                    isConnected = false
+                } catch (e) {
+                    setStatusIndicator('connection-indicator', 'error', e.message)
+                    console.error(e)
+                }
+            }
+        }
+
+
+        /**
+         * Read data from serial device
+         *
+         * @throws {DOMException} - Error message
+         * @return void
+         **/
+        async function serialRead() {
+            try {
+                const reader = port.readable.getReader()
+                while (true) {
+                    const {value, done} = await reader.read()
+                    if (done) {
+                        console.log('Read: ' + new TextDecoder().decode(value))
+                        sendLog.textContent += new TextDecoder().decode(value) + '\n'
+                        reader.releaseLock()
+
+                        break
+                    }
+                    console.log(new TextDecoder().decode(value))
+                    sendLog.textContent += new TextDecoder().decode(value)
+                }
+            }
+            catch (err) {
+                const errorMessage = `error reading data: ${err}`
+                console.error(errorMessage)
+                sendLog.textContent += errorMessage + '\n'
+                setStatusIndicator('written-indicator', 'error')
+            }
+        }
+
+
+        /**
+         * Write data to serial device
+         *
+         * @param {string} data - Data to write to the serial device
+         * @throws {DOMException} - Error message
+         * @return void
+         **/
+        async function serialWrite(data) {
+            try {
+                const writer = port.writable.getWriter()
+                await writer.write(new TextEncoder().encode(data + '\n'))
+                console.log('Write: ' + data)
+                sendLog.textContent += `Write: ${data} \n`
+                setStatusIndicator('written-indicator', 'success')
+                writer.releaseLock()
+            }
+            catch (err) {
+                const errorMessage = `Error writing data: ${err}`
+                console.error(errorMessage)
+                sendLog.textContent += errorMessage + '\n'
+                setStatusIndicator('written-indicator', 'error', 'Error writing data: ' + err)
+            }
+        }
+
 
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         // Connect to serial device and save status to the indicator
@@ -252,51 +328,17 @@ void loop() {
         connectionButton.addEventListener('click', async () => {
             if ('serial' in navigator) {
                 try {
-                    // Check if connected
                     if (isConnected === false) {
-                        try {
-                            port = await navigator.serial.requestPort()
-                            await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
-                            setStatusIndicator('connection-indicator', 'connected', 'Connected')
-                            setStatusIndicator('port-indicator', 'connected', 'Port opened')
-                            setStatusIndicator('readable-indicator', 'connected', 'Readable')
-                            setStatusIndicator('writeable-indicator', 'connected', 'Writeable')
-                            sendButton.disabled = false
-                            connectionButton.textContent = 'Disconnect'
-                            isConnected = true
-                        } catch (e) {
-                            console.error(e)
-                            setStatusIndicator('connection-indicator', 'error', e.message)
-                        }
-                        // await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
-                        // serialCommunicationBox.classList.add('bg-green-100')
-                        // setStatusIndicator('connection-indicator', 'connected', 'Connected')
+                        serialConnect()
                     }
                     else {
-                        // Disconnect from the serial device
-                        try {
-                            await port.close()
-                            setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected')
-                            setStatusIndicator('port-indicator', 'disconnected', 'Port closed')
-                            setStatusIndicator('readable-indicator', 'disconnected', 'Not readable')
-                            setStatusIndicator('writeable-indicator', 'disconnected', 'Not writeable')
-                            setStatusIndicator('written-indicator', 'disconnected', '…')
-                            sendButton.disabled = true
-                            connectionButton.textContent = 'Connect'
-                            isConnected = false
-                        } catch (e) {
-                            console.error(e)
-                            alert(5)
-                            setStatusIndicator('connection-indicator', 'error', e.message)
-                        }
+                        serialDisconnect()
                     }
                 } catch (e) {
-                    alert(6)
-                    console.error(e)
                     setStatusIndicator('connection-indicator', 'error', e.message)
+                    console.error(e)
                 }
             } else {
-                alert(7)
                 console.log('Your browser does not support the Web Serial API.')
                 setStatusIndicator('connection-indicator', 'error', 'Your browser does not support the Web Serial API.')
             }
@@ -306,46 +348,32 @@ void loop() {
         // Send data to the serial device
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         sendButton.addEventListener('click', async () => {
-            if (port && port.readable && port.writable) {
-                try {
-                    const
-                        reader = port.readable.getReader(),
-                        writer = port.writable.getWriter(),
-                        textEncoder = new TextEncoderStream(),
-                        writableStreamClosed = textEncoder.readable.pipeTo(port.writable),
-                        data = sendInput.value
+            await serialWrite('Hello World')
+            await serialRead()
 
-                    alert('Data: ' + data)
-                    await writer.write(new TextEncoder().encode(data + '\n'))
-                    sendLog.textContent += 'Sent: ' + data + '\n'
-                    sendButton.disabled = true
-                    sendButton.classList.add(['disabled', classDefaultBg])
-                    sendButton.textContent = 'Sending …'
+        })
 
-                    while (true) {
-                        const {value, done} = await reader.read()
-                        if (done) {
-                            sendLog.textContent += 'Received: ' + new TextDecoder().decode(value) + '\n'
-                            sendButton.disabled = false
-                            sendButton.textContent = 'Send'
-                            sendButton.classList.remove(['disabled', classDefaultBg])
-                            writer.close()
-                            reader.cancel()
-                            break
-                        }
-                        sendLog.textContent += new TextDecoder().decode(value)
-                    }
-                } catch (e) {
-                    console.error(e)
-                    sendLog.textContent += e.message + '\n'
-                    sendButton.disabled = false
-                    sendButton.textContent = 'Send'
-                    sendButton.classList.remove(['disabled', classDefaultBg])
-                }
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        // Event listener for serial connection
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+        navigator.serial.addEventListener("connect", (e) => {
+            eventLog.textContent += 'Connected to ' + e.target.getInfo().usbProductId + '\n'
+        })
+
+        navigator.serial.addEventListener("disconnect", (e) => {
+            eventLog.textContent += 'Disconnected from ' + e.target.getInfo().usbProductId + '\n'
+        })
+
+        navigator.serial.getPorts().then((ports) => {
+            if (ports.length > 0) {
+                eventLog.textContent += 'Connected to ' + ports[0].getInfo().usbProductId + '\n'
+            } else {
+                eventLog.textContent += 'No device connected\n'
             }
-        });
+        })
+
     </script>
 
 </body>
-
 </html>
