@@ -327,19 +327,8 @@ void loop() {
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         connectionButton.addEventListener('click', async () => {
             if ('serial' in navigator) {
-                try {
-                    if (isConnected === false) {
-                        serialConnect()
-                    }
-                    else {
-                        serialDisconnect()
-                    }
-                } catch (e) {
-                    setStatusIndicator('connection-indicator', 'error', e.message)
-                    console.error(e)
-                }
+                isConnected ? serialDisconnect() : serialConnect();
             } else {
-                console.log('Your browser does not support the Web Serial API.')
                 setStatusIndicator('connection-indicator', 'error', 'Your browser does not support the Web Serial API.')
             }
         })
