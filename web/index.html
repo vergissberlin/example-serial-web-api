@@ -62,10 +62,10 @@
                 class="p-6 my-3 border border-dashed rounded bg-slate-100 dark:bg-slate-700 dark:text-slate-500 border-slate-300">
                 <section class="mb-4 border-b-1 border-slate-400">
                     <h4 class="my-2 text-lg font-semibold text-slate-500">1. Flash your Arduino capable device</h4>
-                    <h5 class="my-3 text-2xl">Arduino code</h5>
                     <p>
                         The Arduino could be programmed with the following code:
                     <details>
+                        <summary>Click here</summary>
                         <pre><code class="language-cpp">void setup() {
     Serial.begin(115200); // Start serial communication with 115200 baud
 }
@@ -79,15 +79,51 @@ void loop() {
 </code></pre>
                     </details>
                 </section>
+
                 <section class="mb-4 border-b-1 border-slate-400">
                     <h4 class="my-2 text-lg font-semibold text-slate-500">2. Connect to the serial device</h4>
-                    <div class="flex items-center justify-start space-x-4">
-                        <button id="connection"
-                            class="w-48 p-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Connect</button>
+                    <button id="connection-button"
+                        class="mb-4 w-48 p-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Connect</button>
+
+
+                    <div class=" grid grid-col-2 gap-2 ">
                         <div id="connection-indicator"
-                            class="w-6 h-6 border rounded-full bg-slate-300 border-slate-400">
+                            class="flex space-x-3 px-4 py-2 bg-slate-200 dark:bg-slate-600 rounded-md">
+                            <span class="w-6 h-6 border rounded-full bg-slate-300 border-slate-400">
+                            </span>
+                            <p class="text-slate-600 dark:text-slate-700 w-24 font-semibold">Connection</p>
+                            <p>…</p>
                         </div>
-                        <div id="connection-log"></div>
+
+                        <div id="port-indicator"
+                            class="flex space-x-3 px-4 py-2 bg-slate-200 dark:bg-slate-600 rounded-md">
+                            <span class="w-6 h-6 border rounded-full bg-slate-300 border-slate-400"></span>
+                            <p class="text-slate-600 dark:text-slate-700 font-semibold w-24">Port</p>
+                            <p>…</p>
+                        </div>
+
+                        <div id="readable-indicator"
+                            class="flex space-x-3 px-4 py-2 bg-slate-200 dark:bg-slate-600 rounded-md">
+                            <span class="w-6 h-6 border rounded-full bg-slate-300 border-slate-400">
+                            </span>
+                            <p class="text-slate-600 dark:text-slate-700 font-semibold w-24">Readable</p>
+                            <p>…</p>
+                        </div>
+
+                        <div id="writeable-indicator"
+                            class="flex space-x-3 px-4 py-2 bg-slate-200 dark:bg-slate-600 rounded-md">
+                            <span class="w-6 h-6 border rounded-full bg-slate-300 border-slate-400">
+                            </span>
+                            <span class="text-slate-600 dark:text-slate-700 font-semibold w-24">Writeable</span>
+                            <span>…</span>
+                        </div>
+                        <div id="written-indicator"
+                            class="flex space-x-3 px-4 py-2 bg-slate-200 dark:bg-slate-600 rounded-md">
+                            <span class="w-6 h-6 border rounded-full bg-slate-300 border-slate-400">
+                            </span>
+                            <span class="text-slate-600 dark:text-slate-700 font-semibold w-24">Written</span>
+                            <span>…</span>
+                        </div>
                     </div>
                 </section>
 
@@ -96,7 +132,7 @@ void loop() {
                         3. Send and receive data to the connected serial device
                     </h4>
                     <button id="send-button" disabled
-                        class="w-48 p-3 mb-3 bg-blue-200 border rounded disabled hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Send</button>
+                        class="w-48 p-3 mb-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">Send</button>
                     <input id="send" type="text" value="Example content" placeholder="Send data to the serial device"
                         class="p-3 mb-1 border rounded text-slate-500 w-96  dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500">
                     <label for="send-log" class="block text-align-left">Log:</label>
@@ -115,61 +151,169 @@ void loop() {
         var isConnected = false,
             port = null,
             serialCommunicationBox = document.getElementById('serial-communication-box'),
-            connectionButton = document.getElementById('connection'),
-            connectionIndicator = document.getElementById('connection-indicator'),
-            connectionLog = document.getElementById('connection-log'),
+            connectionButton = document.getElementById('connection-button'),
 
             sendInput = document.getElementById('send'),
             sendButton = document.getElementById('send-button'),
             sendLog = document.getElementById('send-log'),
 
-            classSuccessBg = 'bg-green-100',
-            classSuccessBgEmphasis = 'bg-green-400',
+            classSuccessBg = 'bg-green-400',
             classSuccessText = 'text-green-500',
-            classErrorBg = 'bg-red-100',
+            classErrorBg = 'bg-red-400',
             classErrorText = 'text-red-500,',
             classDefaultBg = 'bg-slate-100',
             classDefaultText = 'text-slate-500'
 
+
+
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        // Function to set status indicator an write log for given id 
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        let setStatusIndicator = (id, status, log) => {
+            let indicator = document.getElementById(id)
+            let ledElement = indicator.children[0]
+            let logElement = indicator.children[2]
+            ledElement.classList.remove([classSuccessBg, classErrorBg])
+
+            switch (status) {
+                case 'connected':
+                    ledElement.classList.add(classSuccessBg)
+                    logElement.textContent = log || 'Connected'
+                    break
+                case 'disconnected':
+                    ledElement.classList.add(classErrorBg)
+                    logElement.textContent = log || 'Disconnected'
+                    break
+                case 'error':
+                    ledElement.classList.add(classErrorBg)
+                    logElement.textContent = log || 'Error'
+                    break
+                default:
+                    ledElement.classList.add(classDefaultBg)
+                    logElement.textContent = log || 'Unknown'
+                    break
+            }
+        }
+
+
+
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        // Event listener for serial connection
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        /*
+        navigator.serial.addEventListener("connect", (e) => {
+            setStatusIndicator('connection-indicator', 'connected', 'Connected to ' + e.target.getInfo().usbProductId)
+        })
+
+        navigator.serial.addEventListener("disconnect", (e) => {
+            setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected from ' + e.target.getInfo().usbProductId)
+        })
+
+        navigator.serial.getPorts().then((ports) => {
+            if (ports.length > 0) {
+                setStatusIndicator('port-indicator', 'connected', 'Connected to ' + ports[0].getInfo().usbProductId)
+            } else {
+                setStatusIndicator('port-indicator', 'disconnected', 'No device connected')
+            }
+        })
+        */
+
+
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        // Get the reader and read the data from the serial device
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        /*
+        async function getReader() {
+            const usbVendorId = 0xabcd
+            port = await navigator.serial.requestPort({filters: [{usbVendorId}]})
+            await port.open({baudRate: 9600})
+            connectButton.innerText = 'Disconnect'
+            const appendStream = new WritableStream({
+                write(chunk) {
+                    lineBuffer += chunk
+                    let lines = lineBuffer.split('\n')
+                    if (lines.length > 1) {
+                        lineBuffer = lines.pop()
+                        latestValue = parseInt(lines.pop().trim())
+                    }
+                }
+            })
+
+            port.readable
+                .pipeThrough(new TextDecoderStream())
+                .pipeTo(appendStream)
+        }
+        */
+
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         // Connect to serial device and save status to the indicator
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         connectionButton.addEventListener('click', async () => {
             if ('serial' in navigator) {
                 try {
+                    // Check if connected
                     if (!isConnected) {
-                        port = await navigator.serial.requestPort()
-                        await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
-                        isConnected = true
-                        sendButton.disabled = false
-                        serialCommunicationBox.classList.add('bg-green-100')
-                        connectionButton.classList.add(classDefaultBg)
-                        connectionButton.textContent = 'Disconnect'
-                        connectionIndicator.classList.add(classSuccessBgEmphasis)
-                        connectionLog.textContent = 'Connected to ' + port.getInfo().usbProductId
+                        port = await navigator.serial.requestPort().then((port) => {
+                            setStatusIndicator(
+                                'connection-indicator',
+                                'connected',
+                                `Connected (Product ID: ${port.getInfo().usbProductId}, Vendor ID: ${port.getInfo().usbVendorId})`)
+                            isConnected = true
+
+                            port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'}).then(() => {
+                                setStatusIndicator('port-indicator', 'connected', 'Port opened.')
+
+                                // Check if port is readable
+                                if (port.readable) {
+                                    setStatusIndicator('readable-indicator', 'connected', 'Readable')
+                                } else {
+                                    setStatusIndicator('readable-indicator', 'error', 'Not readable')
+                                }
+
+                                // Check if port is writeable
+                                if (port.writable) {
+                                    setStatusIndicator('writeable-indicator', 'connected', 'Writeable')
+                                    sendButton.disabled = false
+                                    connectionButton.textContent = 'Disconnect'
+                                } else {
+                                    setStatusIndicator('writeable-indicator', 'error', 'Not writeable')
+                                }
+                            }).catch((e) => {
+                                setStatusIndicator('port-indicator', 'error', e.message)
+                            })
+                        }).catch((e) => {
+                            setStatusIndicator('connection-indicator', 'error', e.message)
+                        })
+
+                        // await port.open({baudRate: 115200, parity: 'none', stopBits: 1, flowControl: 'none'})
+                        // serialCommunicationBox.classList.add('bg-green-100')
+                        // setStatusIndicator('connection-indicator', 'connected', 'Connected')
                     } else {
                         await port.close()
-                        isConnected = false
                         port = null
                         sendButton.disabled = true
-                        connectionButton.classList.remove(classDefaultBg)
                         connectionButton.textContent = 'Connect'
-                        connectionIndicator.classList.remove(classSuccessBgEmphasis)
-                        connectionLog.textContent = 'Disconnected'
+                        setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected')
+                        setStatusIndicator('port-indicator', 'disconnected', 'Disconnected')
+                        setStatusIndicator('readable-indicator', 'disconnected', 'Disconnected')
+                        setStatusIndicator('writeable-indicator', 'disconnected', 'Disconnected')
+                        // setStatusIndicator('connection-indicator', 'disconnected', 'Disconnected')
                     }
                 } catch (e) {
                     console.error(e)
-                    connectionIndicator.style.backgroundColor = 'red'
-                    connectionLog.textContent = e.message
+                    setStatusIndicator('connection-indicator', 'error', e.message)
                 }
             } else {
                 console.log('Your browser does not support the Web Serial API.')
-                connectionIndicator.style.backgroundColor = 'red'
-                connectionLog.textContent = 'Your browser does not support the Web Serial API.'
+                setStatusIndicator('connection-indicator', 'error', 'Your browser does not support the Web Serial API.')
             }
         })
 
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         // Send data to the serial device
+        // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         sendButton.addEventListener('click', async () => {
-            if (isConnected) {
+            if (port && port.readable && port.writable) {
                 try {
                     const
                         reader = port.readable.getReader(),
@@ -178,6 +322,7 @@ void loop() {
                         writableStreamClosed = textEncoder.readable.pipeTo(port.writable),
                         data = sendInput.value
 
+                    alert('Data: ' + data)
                     await writer.write(new TextEncoder().encode(data + '\n'))
                     sendLog.textContent += 'Sent: ' + data + '\n'
                     sendButton.disabled = true
@@ -200,6 +345,9 @@ void loop() {
                 } catch (e) {
                     console.error(e)
                     sendLog.textContent += e.message + '\n'
+                    sendButton.disabled = false
+                    sendButton.textContent = 'Send'
+                    sendButton.classList.remove(['disabled', classDefaultBg])
                 }
             }
         });
