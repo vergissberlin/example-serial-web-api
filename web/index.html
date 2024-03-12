@@ -257,6 +257,8 @@ void loop() {
                     sendButton.disabled = true
                     connectionButton.textContent = 'Connect'
                     isConnected = false
+                    await port.close()
+                    port = null
                 } catch (e) {
                     setStatusIndicator('connection-indicator', 'error', e.message)
                     setStatusIndicator('port-indicator', null, '…')
