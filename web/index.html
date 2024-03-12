@@ -348,13 +348,11 @@ void loop() {
         sendButton.addEventListener('click', async () => {
             await serialWrite(sendInput.value)
             await serialRead()
-
         })
 
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         // Event listener for serial connection (not working)
         // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
         navigator.serial.addEventListener("connect", (e) => {
             eventLog.textContent += 'Connected to ' + e.target.getInfo().usbProductId + '\n'
         })
