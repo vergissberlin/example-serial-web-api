@@ -6,7 +6,7 @@
     "new_install_prompt_erase": false,
     "builds": [
         {
-            "chipFamily": "ESP32-S3",
+            "chipFamily": "ESP32S3",
             "parts": [
                 {
                     "path": "firmware/serial-heltec-32-v2.bin",
