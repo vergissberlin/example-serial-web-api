@@ -456,17 +456,6 @@ void loop() {
                 eventLog.textContent += "No device connected\n"
             }
         })
-        document
-            .getElementById("type")
-            .addEventListener("change", (event) => {
-                const button = document.querySelector(
-                    "esp-web-install-button"
-                )
-                button.setAttribute(
-                    "manifest",
-                    `./manifest_${event.target.value}.json`
-                )
-            });
     </script>
 </body>
 
