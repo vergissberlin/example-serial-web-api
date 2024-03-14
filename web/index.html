@@ -170,11 +170,11 @@ void loop() {
 
                     <label for="send-log" class="block text-align-left">Log:</label>
                     <textarea id="send-log" rows="5" readonly placeholder="Log output"
-                        class="w-full p-3 border rounded text-slate-500 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500"></textarea>
+                        class="scroll-smooth w-full p-3 border rounded text-slate-500 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500"></textarea>
 
                     <label for="event-log" class="block text-align-left">Event-Log:</label>
                     <textarea id="event-log" rows="5" readonly placeholder="Log output"
-                        class="w-full p-3 border rounded text-slate-500 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500"></textarea>
+                        class="scroll-smooth w-full p-3 border rounded text-slate-500 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-500"></textarea>
                 </section>
             </div>
         </section>
@@ -359,18 +359,6 @@ void loop() {
                 sendButton.disabled = true
                 connectionButton.textContent = "Connect"
                 isConnected = false
-                // } catch (e) {
-                //     setStatusIndicator(
-                //         "connection-indicator",
-                //         "error",
-                //         e.message
-                //     )
-                //     setStatusIndicator("port-indicator", null, "…")
-                //     setStatusIndicator("readable-indicator", null, "…")
-                //     setStatusIndicator("writeable-indicator", null, "…")
-                //     setStatusIndicator("written-indicator", null, "…")
-                //     console.error(e)
-                // }
             }
         }
 
@@ -387,6 +375,7 @@ void loop() {
                     const decoded = textDecoder.decode(value)
 
                     sendLog.textContent += decoded
+                    sendLog.scrollTop = sendLog.scrollHeight
 
                     if (done) break
                 }

@@ -9,7 +9,7 @@
             "chipFamily": "ESP32-S3",
             "parts": [
                 {
-                    "path": "firmware/serial-heltec-32-v2.bin",
+                    "path": "firmware/serial-esp32-heltec-v2.bin",
                     "offset": 0
                 }
             ]
