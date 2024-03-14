@@ -84,18 +84,20 @@ void loop() {
 </code></pre>
                     </details>
                     </p>
-                    <p>Install it here directly. Reload the page, after installation!</p>
-                    <p>
-                        <esp-web-install-button manifest="/example-serial-web-api/manifest.json">
-                            <button slot="activate" type="button"
-                                class="mb-4 w-48 p-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">
-                                Install
-                            </button>
-                            <span slot="unsupported">Ah snap, your browser doesn't work!</span>
-                            <span slot="not-allowed">Ah snap, you are not allowed to use this on
-                                HTTP!</span>
-                        </esp-web-install-button>
-                    </p>
+                    <div class="hidden">
+                        <p>Install it here directly. Reload the page, after installation!</p>
+                        <p>
+                            <esp-web-install-button manifest="/example-serial-web-api/manifest.json">
+                                <button slot="activate" type="button"
+                                    class="mb-4 w-48 p-3 bg-blue-200 border rounded hover:border-slate-300 hover:bg-slate-200 active:bg-slate-300">
+                                    Install
+                                </button>
+                                <span slot="unsupported">Ah snap, your browser doesn't work!</span>
+                                <span slot="not-allowed">Ah snap, you are not allowed to use this on
+                                    HTTP!</span>
+                            </esp-web-install-button>
+                        </p>
+                    </div>
                 </section>
 
                 <section class="mb-4 border-b-1 border-slate-400">
