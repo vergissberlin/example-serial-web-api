@@ -9,7 +9,7 @@
             "chipFamily": "ESP32-S3",
             "parts": [
                 {
-                    "path": "firmware/serial-esp32-heltec-v2.bin",
+                    "path": "example-serial-web-api/firmware/serial-esp32-heltec-v2.bin",
                     "offset": 0
                 }
             ]
@@ -18,7 +18,7 @@
             "chipFamily": "ESP32",
             "parts": [
                 {
-                    "path": "firmware/serial-esp32dev.bin",
+                    "path": "example-serial-web-api/firmware/serial-esp32dev.bin",
                     "offset": 0
                 }
             ]
@@ -27,7 +27,7 @@
             "chipFamily": "ESP8266",
             "parts": [
                 {
-                    "path": "firmware/serial-esp8266.bin",
+                    "path": "example-serial-web-api/firmware/serial-esp8266.bin",
                     "offset": 0
                 }
             ]
@@ -36,7 +36,7 @@
             "chipFamily": "ESP8285",
             "parts": [
                 {
-                    "path": "firmware/serial-esp8285.bin",
+                    "path": "example-serial-web-api/firmware/serial-esp8285.bin",
                     "offset": 0
                 }
             ]
@@ -45,7 +45,7 @@
             "chipFamily": "ESP8266",
             "parts": [
                 {
-                    "path": "firmware/serial-esp8266.bin",
+                    "path": "example-serial-web-api/firmware/serial-esp8266.bin",
                     "offset": 0
                 }
             ]
@@ -54,11 +54,7 @@
             "chipFamily": "ESP8266",
             "parts": [
                 {
-                    "path": "firmware/serial-esp32doit-devkit-v1.bin",
-                    "offset": 0
-                },
-                {
-                    "path": "firmware/serial-esp12e.bin",
+                    "path": "example-serial-web-api/firmware/serial-esp12e.bin",
                     "offset": 0
                 }
             ]
@@ -67,7 +63,7 @@
             "chipFamily": "ESP8266",
             "parts": [
                 {
-                    "path": "firmware/serial-esp12e.bin",
+                    "path": "example-serial-web-api/firmware/serial-esp12e.bin",
                     "offset": 0
                 }
             ]
