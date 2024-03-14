@@ -11,6 +11,10 @@
                 {
                     "path": "/example-serial-web-api/firmware/serial-esp32-heltec-v2.bin",
                     "offset": 0
+                },
+                {
+                    "path": "/example-serial-web-api/firmware/serial-esp32-heltec-v3.bin",
+                    "offset": 0
                 }
             ]
         },
